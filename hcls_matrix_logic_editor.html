@@ -65,6 +65,28 @@ input[type=range]{width:100%;accent-color:var(--accent);}
 </style>
 </head>
 <body>
+  <style>
+.ilab-nav{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:6px;max-width:840px;margin:0 auto 20px;}
+.ilab-nav a{flex:1;text-align:center;padding:9px 14px;border-radius:7px;font-size:13px;font-weight:600;
+  color:var(--muted);text-decoration:none;transition:.15s;}
+.ilab-nav a:hover{background:var(--accent-soft);color:var(--accent-ink);}
+.ilab-nav a.active{background:var(--accent);color:#fff;}
+</style>
+
+<nav class="ilab-nav" id="ilab-nav">
+  <a href="index.html" data-page="hcls_wayfinder_v8.html">Wayfinder</a>
+  <a href="hcls_matrix_logic_editor.html" data-page="hcls_matrix_logic_editor.html">Scoring logic editor</a>
+</nav>
+
+<script>
+(function(){
+  const current = location.pathname.split('/').pop();
+  document.querySelectorAll('#ilab-nav a').forEach(a=>{
+    if(a.dataset.page === current) a.classList.add('active');
+  });
+})();
+</script>
 <div class="wrap">
   <div class="eyebrow">Harvard Innovation Labs · HCLS Wayfinder — companion page</div>
   <h1 style="font-size:22px;margin-top:6px;">Scoring logic: how it works, and how to change it</h1>
