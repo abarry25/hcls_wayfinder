@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCLS Founder Wayfinder v8 — i-lab</title>
+<style>
+:root{
+  --bg:#F7F6F3; --surface:#FFFFFF; --border:#E2E0D8; --border-strong:#CBC8BC;
+  --ink:#1F2320; --muted:#6B6F68; --faint:#9A978C;
+  --accent:#3D6B5C; --accent-soft:#E4EDE8; --accent-ink:#20402F;
+  --clay:#B8863B; --clay-soft:#F3E9D6; --clay-ink:#5C4114;
+  --todo:#B04A3C; --todo-soft:#FBE7E3; --todo-ink:#7A2E22;
+  --radius:12px;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);}
+h1,h2,h3{margin:0;font-weight:600;}
+button{cursor:pointer;font-family:inherit;}
+.wrap{max-width:680px;margin:0 auto;padding:36px 20px 60px;}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:700;}
+.progress{display:flex;gap:6px;margin:18px 0 28px;}
+.progress .dot{height:4px;flex:1;border-radius:2px;background:var(--border);transition:background .3s;}
+.progress .dot.done{background:var(--accent);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px 24px;}
+.qtxt{font-size:19px;line-height:1.4;margin-bottom:6px;}
+.qhint{font-size:12.5px;color:var(--muted);margin-bottom:16px;}
+.alist{display:flex;flex-direction:column;gap:8px;}
+.abtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);
+  border:1.5px solid var(--border-strong);border-radius:10px;padding:13px 14px;font-size:14.5px;transition:.15s;}
+.abtn:hover{border-color:var(--accent);background:var(--accent-soft);}
+.abtn.selected{border-color:var(--accent);background:var(--accent-soft);}
+.abody{display:flex;flex-direction:column;gap:2px;}
+.at{font-weight:600;color:var(--ink);}
+.as{font-size:12.5px;color:var(--muted);}
+.navrow{display:flex;justify-content:space-between;margin-top:22px;}
+.btn{border:none;border-radius:8px;padding:11px 20px;font-size:13.5px;font-weight:600;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:disabled{background:var(--border-strong);color:var(--faint);cursor:not-allowed;}
+.btn-ghost{background:none;color:var(--muted);}
+.hidden{display:none !important;}
+
+.slider-block{margin-bottom:24px;}
+.slider-label{display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:4px;}
+.slider-label span.val{color:var(--accent-ink);font-weight:700;}
+input[type=range]{width:100%;accent-color:var(--accent);}
+.anchor-row{display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint);margin-top:2px;}
+.anchor-row span{max-width:33%;line-height:1.3;}
+.current-anchor{font-size:12px;color:var(--muted);margin-top:6px;font-style:italic;}
+
+.todo-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;
+  background:var(--todo-soft);color:var(--todo-ink);border-radius:6px;padding:2px 7px;margin-left:6px;
+  text-transform:uppercase;letter-spacing:.03em;}
+.todo-block{border:1.5px dashed var(--todo);background:var(--todo-soft);border-radius:10px;padding:10px 12px;
+  font-size:12.5px;color:var(--todo-ink);margin-top:6px;line-height:1.5;}
+
+/* Drag and drop milestones */
+.milestone-pool{display:flex;flex-wrap:wrap;gap:6px;border:1.5px dashed var(--border-strong);border-radius:10px;
+  padding:10px;min-height:44px;margin-bottom:14px;}
+.mchip{background:var(--surface);border:1px solid var(--border-strong);border-radius:20px;padding:6px 12px;
+  font-size:12.5px;cursor:grab;user-select:none;}
+.mchip:active{cursor:grabbing;}
+.mcols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.mcol{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:8px;min-height:110px;}
+.mcol-title{font-size:11px;font-weight:700;color:var(--accent-ink);text-transform:uppercase;letter-spacing:.03em;
+  margin-bottom:6px;text-align:center;}
+.mcol .mchip{display:block;margin-bottom:5px;width:100%;text-align:left;}
+.writein-row{display:flex;gap:6px;margin-top:8px;}
+.writein-row input{flex:1;border:1px solid var(--border-strong);border-radius:8px;padding:7px 10px;font-size:12.5px;}
+.writein-row button{border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);
+  font-size:12px;font-weight:600;padding:0 12px;}
+
+.persona-badge{font-size:13px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);
+  display:inline-block;padding:5px 12px;border-radius:20px;margin-bottom:10px;}
+.headline{font-size:20px;line-height:1.35;margin-bottom:10px;}
+.desc{font-size:14.5px;color:var(--muted);line-height:1.6;}
+.section-title{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);
+  margin:26px 0 4px;display:flex;align-items:center;}
+.section-sub{font-size:12px;color:var(--faint);margin-bottom:10px;}
+.tier-pill{display:inline-block;font-size:10.5px;font-weight:700;border-radius:6px;padding:2px 8px;margin-left:8px;
+  background:var(--clay-soft);color:var(--clay-ink);}
+.step{display:flex;gap:12px;border:1px solid var(--border);border-radius:10px;padding:13px 14px;margin-bottom:8px;background:var(--surface);}
+.step .num{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.step-a{font-size:14px;font-weight:600;}
+.step-d{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.5;}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.levelup-intro{font-size:13.5px;color:var(--muted);line-height:1.55;margin-bottom:14px;}
+.levelup-block{margin-bottom:22px;}
+.levelup-labels{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;margin-bottom:8px;}
+.levelup-labels .now{color:var(--ink);}
+.levelup-labels .then{color:var(--accent-ink);}
+.levelup-track{position:relative;height:10px;background:var(--border);border-radius:6px;margin:14px 4px 22px;}
+.levelup-fill{position:absolute;top:0;left:0;height:100%;background:var(--accent-soft);border-radius:6px;}
+.levelup-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.marker-current{background:var(--accent);color:#fff;border:2px solid var(--surface);}
+.marker-target{background:var(--surface);color:var(--clay-ink);border:2px dashed var(--clay);}
+.marker-caption{position:absolute;top:20px;font-size:10.5px;color:var(--faint);white-space:nowrap;transform:translateX(-50%);}
+.timing-row{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.timing-card{border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:var(--surface);}
+.timing-card .tt{font-size:13.5px;font-weight:600;}
+.timing-card .td{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.restart{text-align:center;margin-top:28px;}
+.restart button{background:none;border:none;color:var(--faint);font-size:12.5px;text-decoration:underline;}
+.note{font-size:11px;color:var(--faint);margin-top:24px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow" style="display:flex;justify-content:space-between;align-items:center;">
+    <span>Harvard Innovation Labs · HCLS Wayfinder — v8</span>
+    <button onclick="loadDemo()" style="border:1px solid var(--border-strong);background:var(--surface);border-radius:6px;padding:3px 10px;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:none;letter-spacing:normal;">▶ Load demo</button>
+  </div>
+  <h1 style="font-size:24px;margin-top:6px;">Find your way in</h1>
+  <div class="progress" id="progress"></div>
+
+  <div id="quiz" class="card"></div>
+  <div id="results" class="hidden"></div>
+
+  <div class="note">v8 — added a one-click demo fill for presenting this without clicking through all 4 questions live. Everything else matches v7.</div>
+</div>
+
+<script>
+/* ---------- Personas ----------
+   RESOLVED from prior TODO: advisor confirmed 5 personas, organized around
+   psychological readiness/urgency rather than clinical/non-clinical domain.
+   The goal per advisor: capture someone at their moment of "I'm ready to..." */
+const PERSONAS = {
+  explore: { badge:'Ready to explore', headline:'You want to know if entrepreneurship is even for you — that\'s a real starting point.',
+    desc:'You don\'t need a venture idea to belong here. This is about testing the water, not committing to a company.' },
+  firststep: { badge:'Ready to take the first step', headline:'You have an idea and the energy to move on it right now.',
+    desc:'The goal this week is momentum, not perfection. Small, real steps beat a polished plan.' },
+  teambuild: { badge:'Ready to build a team', headline:'You know what you want to build — you just can\'t do it alone.',
+    desc:'Team is the constraint right now, not the idea. Everything below leans toward people, not just programs.' },
+  labtoventure: { badge:'Ready to move from lab to venture', headline:'You have the science. The question is how it becomes something real.',
+    desc:'Commercializing research is its own skill, separate from the research itself — learnable, not a personality trait.' },
+  justdiscovered: { badge:'Just found this, and it\'s exciting', headline:'Something just clicked, and you want to know what to do with that spark.',
+    desc:'You don\'t need a plan yet. This is a safe place to poke around before deciding whether to go further.' }
+};
+
+const ENTRY_OPTS = [
+  ['explore','I want to see if entrepreneurship is for me','No idea yet, just curious'],
+  ['firststep','I have an idea and I\'m ready to take a first step','Ready to move, not just think'],
+  ['teambuild','I have an idea and need a team to bring it to life','Team is what\'s missing'],
+  ['labtoventure','I have research or IP I want to move toward a venture','Lab-to-venture'],
+  ['justdiscovered','Whoa, this is cool — how do I even do this?','Just found this, no plan yet']
+];
+
+/* ---------- Stage sliders: concept / testing / traction ----------
+   Anchors below are exactly what the advisor specified at 1/3/5.
+   Values 2 and 4 show the two nearest anchors rather than invented text. */
+const STAGE_SLIDERS = [
+  { key:'concept', label:'Concept',
+    anchors:{1:'I don\'t have an idea, but I want to see if entrepreneurship is for me',
+             3:'I have lots of ideas, want to pick one',
+             5:'I have a concept'} },
+  { key:'testing', label:'Testing assumptions',
+    anchors:{1:'No one has ever seen my idea',
+             3:'Family and friends are excited about it',
+             /* TODO: advisor flagged this anchor as needing real wording ("need something here").
+                Draft below is a placeholder, not confirmed copy. */
+             5:'This concept has been tested with real potential customers (TODO: confirm wording)'} },
+  { key:'traction', label:'Traction',
+    anchors:{1:'No traction',
+             3:'Some users/revenue, IP, or milestones',
+             5:'We\'re ready to scale'} }
+];
+
+/* ---------- Blocker sliders: time / people / knowledge / money ----------
+   Changed from 0-100 validation/team/accountability to 1-5, per advisor
+   correction. No explicit 1/5 anchor wording was given for these — the
+   generic "Not an issue" / "Biggest blocker" anchors and category
+   descriptions below are drafted directly from the parenthetical notes,
+   not separately confirmed. */
+const BLOCKER_SLIDERS = [
+  { key:'time', label:'Time', sub:'Commitment, time left at Harvard, a busy life' },
+  { key:'ppl', label:'People', sub:'Advisors, experts, team' },
+  { key:'knowledge', label:'Knowledge', sub:'Business acumen, founder mindset' },
+  { key:'money', label:'Money', sub:'Not having it, or what choosing this career costs you' }
+];
+
+/* ---------- Milestone bank for drag-and-drop ---------- */
+const MILESTONE_BANK = [
+  'Generate a concept','Test assumptions/concept','Build an MVP','Find a cofounder','Get funding',
+  'Interview 100 customers','Define core customer','Apply for the PIC','Build a team','Transition to lab/office space'
+];
+
+const QUESTIONS = ['entry','stage','milestones','blockers'];
+let step = 0;
+const answers = {
+  entry: undefined,
+  stage: { concept:3, testing:3, traction:3 },
+  milestones: { pool: [...MILESTONE_BANK], '30days':[], semester:[], harvard:[] },
+  blockers: { time:3, ppl:3, knowledge:3, money:3 }
+};
+
+function renderProgressDots(){
+  const p = document.getElementById('progress');
+  p.innerHTML = '';
+  for(let i=0;i<QUESTIONS.length;i++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < step ? ' done' : '');
+    p.appendChild(d);
+  }
+}
+
+function nearestAnchorText(anchors, val){
+  if(anchors[val]) return anchors[val];
+  const lo = val - (val%2===0?1:0);
+  // find nearest lower and upper defined anchors
+  let lower=null, upper=null;
+  for(const k of [1,2,3,4,5]){
+    if(k<=val && anchors[k]) lower=anchors[k];
+    if(k>=val && anchors[k] && upper===null) upper=anchors[k];
+  }
+  if(lower && upper && lower!==upper) return `Between: "${lower}" — "${upper}"`;
+  return lower || upper || '';
+}
+
+function renderQuiz(){
+  if(step >= QUESTIONS.length){ showResults(); return; }
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  renderProgressDots();
+  const key = QUESTIONS[step];
+  const c = document.getElementById('quiz');
+  c.innerHTML = '';
+
+  if(key === 'entry'){
+    c.innerHTML = `<div class="qtxt">What brought you here?</div>
+      <div class="qhint">This sets your persona — the questions after this shape the journey, not who you are.</div>`;
+    const list = document.createElement('div'); list.className = 'alist';
+    ENTRY_OPTS.forEach(([val,title,sub])=>{
+      const btn = document.createElement('button');
+      btn.className = 'abtn' + (answers.entry===val ? ' selected' : '');
+      btn.innerHTML = `<div class="abody"><span class="at">${title}</span><span class="as">${sub}</span></div>`;
+      btn.onclick = () => { answers.entry = val; renderQuiz(); setTimeout(()=>{ step++; renderQuiz(); }, 180); };
+      list.appendChild(btn);
+    });
+    c.appendChild(list);
+    addNav(c, false);
+
+  } else if(key === 'stage'){
+    c.innerHTML = `<div class="qtxt">Based on what you know about building a venture, where are you?</div>
+      <div class="qhint">Drag each slider from 1 to 5.</div>`;
+    STAGE_SLIDERS.forEach(s=>{
+      const block = document.createElement('div'); block.className = 'slider-block';
+      const val = answers.stage[s.key];
+      block.innerHTML = `
+        <div class="slider-label">${s.label} <span class="val">${val}</span></div>
+        <input type="range" min="1" max="5" step="1" value="${val}">
+        <div class="anchor-row"><span>${s.anchors[1]}</span><span style="text-align:center;">${s.anchors[3]}</span><span style="text-align:right;">${s.anchors[5]}</span></div>
+        <div class="current-anchor"></div>`;
+      const input = block.querySelector('input');
+      const valSpan = block.querySelector('.val');
+      const curAnchor = block.querySelector('.current-anchor');
+      const updateAnchor = () => { curAnchor.textContent = nearestAnchorText(s.anchors, parseInt(input.value)); };
+      input.oninput = () => { answers.stage[s.key] = parseInt(input.value); valSpan.textContent = input.value; updateAnchor(); };
+      updateAnchor();
+      c.appendChild(block);
+    });
+    addNav(c, true);
+
+  } else if(key === 'milestones'){
+    c.innerHTML = `<div class="qtxt">When do you want to hit these milestones?</div>
+      <div class="qhint">Drag each into exactly one column. This is about urgency and constraints, not ambition — be honest about timing.</div>`;
+    const pool = document.createElement('div');
+    pool.className = 'milestone-pool';
+    pool.ondragover = e => e.preventDefault();
+    pool.ondrop = e => { e.preventDefault(); moveMilestone(e.dataTransfer.getData('text/plain'), 'pool'); };
+    c.appendChild(pool);
+
+    const cols = document.createElement('div'); cols.className = 'mcols';
+    [['30days','30 days'],['semester','This semester'],['harvard','My time at Harvard']].forEach(([key,label])=>{
+      const col = document.createElement('div'); col.className = 'mcol';
+      col.ondragover = e => e.preventDefault();
+      col.ondrop = e => { e.preventDefault(); moveMilestone(e.dataTransfer.getData('text/plain'), key); };
+      col.innerHTML = `<div class="mcol-title">${label}</div>`;
+      cols.appendChild(col);
+    });
+    c.appendChild(cols);
+
+    const writein = document.createElement('div'); writein.className = 'writein-row';
+    writein.innerHTML = `<input type="text" placeholder="Write in your own milestone…">
+      <button>Add</button>`;
+    writein.querySelector('button').onclick = () => {
+      const input = writein.querySelector('input');
+      const text = input.value.trim();
+      if(!text) return;
+      answers.milestones.pool.push(text);
+      input.value = '';
+      renderQuiz();
+    };
+    c.appendChild(writein);
+    renderMilestoneChips(pool, cols);
+    addNav(c, true);
+
+  } else if(key === 'blockers'){
+    c.innerHTML = `<div class="qtxt">What's stopping you right now?</div>
+      <div class="qhint">Drag each from 1 (not an issue) to 5 (biggest blocker).</div>`;
+    BLOCKER_SLIDERS.forEach(b=>{
+      const block = document.createElement('div'); block.className = 'slider-block';
+      const val = answers.blockers[b.key];
+      block.innerHTML = `
+        <div class="slider-label">${b.label} <span class="val">${val}</span></div>
+        <div class="qhint" style="margin-bottom:6px;">${b.sub}</div>
+        <input type="range" min="1" max="5" step="1" value="${val}">
+        <div class="anchor-row"><span>Not an issue</span><span></span><span>Biggest blocker</span></div>`;
+      const input = block.querySelector('input');
+      const valSpan = block.querySelector('.val');
+      input.oninput = () => { answers.blockers[b.key] = parseInt(input.value); valSpan.textContent = input.value; };
+      c.appendChild(block);
+    });
+    addNav(c, true, true);
+  }
+}
+
+function addNav(container, showContinue, isLast){
+  const nav = document.createElement('div'); nav.className = 'navrow';
+  const back = document.createElement('button'); back.className = 'btn btn-ghost'; back.textContent = '← Back';
+  back.style.visibility = step===0 ? 'hidden' : 'visible';
+  back.onclick = () => { step--; renderQuiz(); };
+  nav.appendChild(back);
+  if(showContinue){
+    const next = document.createElement('button'); next.className = 'btn btn-primary';
+    next.textContent = isLast ? 'See my journey' : 'Continue';
+    next.onclick = () => { step++; renderQuiz(); };
+    nav.appendChild(next);
+  }
+  container.appendChild(nav);
+}
+
+function moveMilestone(text, destKey){
+  if(!text) return;
+  Object.keys(answers.milestones).forEach(k=>{
+    answers.milestones[k] = answers.milestones[k].filter(t=>t!==text);
+  });
+  answers.milestones[destKey].push(text);
+  renderQuiz();
+}
+
+function renderMilestoneChips(poolEl, colsEl){
+  answers.milestones.pool.forEach(text=>{
+    const chip = document.createElement('div'); chip.className = 'mchip'; chip.draggable = true; chip.textContent = text;
+    chip.ondragstart = e => e.dataTransfer.setData('text/plain', text);
+    poolEl.appendChild(chip);
+  });
+  const colKeys = ['30days','semester','harvard'];
+  colsEl.querySelectorAll('.mcol').forEach((col,i)=>{
+    const key = colKeys[i];
+    answers.milestones[key].forEach(text=>{
+      const chip = document.createElement('div'); chip.className = 'mchip'; chip.draggable = true; chip.textContent = text;
+      chip.ondragstart = e => e.dataTransfer.setData('text/plain', text);
+      col.appendChild(chip);
+    });
+  });
+}
+
+/* ---------- Commitment pace ----------
+   Everyone defaults to L2 (medium commitment) rather than being inferred
+   from milestone placement — advisor's explicit decision, replacing the
+   old "most milestones in one column" guess. Faster/slower paces are
+   offered as text, not separate computed tiers. */
+function getTier(){
+  return { code:'L2', label:'L2 — medium commitment' };
+}
+const PACE_NOTE = 'Want to move faster? Spend more time this week and you could get through these steps sooner. Can only commit a little? That still counts — expect slower, but real, progress.';
+
+function dominantBlocker(){
+  const b = answers.blockers;
+  return Object.entries(b).sort((a,z)=>z[1]-a[1])[0][0];
+}
+function weakestStageArea(){
+  const s = answers.stage;
+  return Object.entries(s).sort((a,z)=>a[1]-z[1])[0][0];
+}
+
+/* TODO: advisor gave the 4 blocker categories (time/people/knowledge/money)
+   but not the specific action each should trigger. Copy below is a first
+   draft to keep the tool functional — confirm or replace with advisor. */
+function getCommunityStep(){
+  const need = dominantBlocker();
+  const copy = {
+    time:'Join a drop-in session with no standing weekly commitment',
+    ppl:'Come to a founder-matching session to meet advisors and potential teammates',
+    knowledge:'Join a foundations workshop on business basics and founder mindset',
+    money:'Talk to an advisor about what this actually costs you and what funding paths exist'
+  };
+  return copy[need] + ' (TODO: draft copy, not advisor-confirmed)';
+}
+
+/* 30-day goal now pulls directly from what the founder dragged into the
+   30-day column — falls back to their weakest stage slider if that column
+   is empty, per the original v2 logic. */
+function getGoalStep(){
+  if(answers.milestones['30days'].length > 0) return answers.milestones['30days'][0];
+  const area = weakestStageArea();
+  const fallback = { concept:'Pick one idea to move forward with', testing:'Show your idea to 5 people outside your family/friends', traction:'Identify the one metric that would prove this is working' };
+  return fallback[area] + ' (TODO: no 30-day milestone was placed, this is a fallback)';
+}
+
+function getNetworkStep(){
+  const need = dominantBlocker();
+  const copy = {
+    time:'Get matched with async-friendly resources that fit around your schedule',
+    ppl:'Get introduced to the advisor and expert network in your space',
+    knowledge:'Get paired with a mentor who can fill the business-acumen gap',
+    money:'Get connected to funding-focused programs and advisors'
+  };
+  return copy[need] + ' (TODO: draft copy, not advisor-confirmed)';
+}
+
+/* ---------- Milestone grading matrix (from advisor's spreadsheet) ----------
+   Points a founder earns toward each dimension for choosing a given milestone
+   as a 30-day priority, indexed by their self-rating 1-5 (array index 0-4).
+   'nrn' = "Not right now" — this milestone doesn't move this dimension at
+   this stage, regardless of self-rating.
+
+   RESOLVED: the one blank cell in the source sheet (Concept / Apply for the
+   PIC / rating 5) is confirmed as 0 — advisor confirmed this is correct,
+   consistent with every other cell in that row being "Not right now".
+
+   TODO: "Get funding" exists in the milestone drag-and-drop bank but has no
+   row in the advisor's matrix at all — treated as an unscored gap below,
+   flagged rather than assumed to be 0. */
+const MILESTONE_MATRIX = {
+  concept: {
+    'Generate a concept': [4,3,2,1,0],
+    'Test assumptions/concept': [3,2,1,1,0],
+    'Build an MVP': ['nrn','nrn','nrn','nrn','nrn'],
+    'Find a cofounder': [0,0,0,0,0],
+    'Interview 100 customers': [3,2,1,1,0],
+    'Define core customer': ['nrn','nrn','nrn',1,0],
+    'Apply for the PIC': ['nrn','nrn','nrn','nrn',0],
+    'Build a team': [0,0,0,0,0],
+    'Transition to lab/office space': ['nrn','nrn','nrn','nrn','nrn']
+  },
+  testing: {
+    'Generate a concept': [0,0,0,0,0],
+    'Test assumptions/concept': [4,3,2,1,0],
+    'Build an MVP': ['nrn','nrn','nrn','nrn','nrn'],
+    'Find a cofounder': [0,0,0,0,0],
+    'Interview 100 customers': [4,3,2,1,0],
+    'Define core customer': [4,3,2,1,0],
+    'Apply for the PIC': ['nrn','nrn','nrn','nrn','nrn'],
+    'Build a team': [0,0,0,0,0],
+    'Transition to lab/office space': ['nrn','nrn','nrn','nrn','nrn']
+  },
+  traction: {
+    'Generate a concept': [0,0,0,0,0],
+    'Test assumptions/concept': [0,0,0,0,0],
+    'Build an MVP': [4,3,2,1,0],
+    'Find a cofounder': [2,2,2,1,0],
+    'Interview 100 customers': [0,0,0,0,0],
+    'Define core customer': [1,1,1,1,0],
+    'Apply for the PIC': [2,2,2,1,0],
+    'Build a team': [2,2,2,1,0],
+    'Transition to lab/office space': [2,2,2,1,0]
+  }
+};
+
+/* target = current self-rating + sum of points from whatever was dragged
+   into the "30 days" column, capped at 5. Points are literal additions,
+   confirmed directly by advisor — not a separate lookup/threshold. */
+function getDimensionProjection(dimKey){
+  const current = answers.stage[dimKey];
+  const picks = answers.milestones['30days'];
+  let points = 0;
+  const notes = [];
+  picks.forEach(m=>{
+    const row = MILESTONE_MATRIX[dimKey][m];
+    if(!row){ notes.push(`"${m}" has no row in the matrix — not scored (TODO)`); return; }
+    const cell = row[current-1];
+    if(cell === 'nrn'){ notes.push(`"${m}" is not-right-now for this dimension at your stage — 0 pts`); return; }
+    if(cell === null){ notes.push(`"${m}" is a blank cell in the source matrix at rating ${current} — treated as 0 (TODO: confirm real value)`); return; }
+    points += cell;
+  });
+  const target = Math.min(5, current + points);
+  return { current, points, target, notes };
+}
+
+function getTimingOptions(){
+  return [
+    { tt:'If you can commit a few hours a week', td:'Expect steady, low-pressure progress — one small action at a time, no fixed deadline.' },
+    { tt:'TODO — option 2 not specified in notes', td:'Placeholder. Confirm commitment level and expected outcome with advisor.' },
+    { tt:'TODO — option 3 not specified in notes', td:'Placeholder. Confirm commitment level and expected outcome with advisor.' }
+  ];
+}
+
+function showResults(){
+  document.getElementById('quiz').classList.add('hidden');
+  const r = document.getElementById('results');
+  r.classList.remove('hidden');
+
+  const persona = PERSONAS[answers.entry];
+  const tier = getTier();
+  const timing = getTimingOptions();
+  const semesterItems = answers.milestones.semester;
+
+  r.innerHTML = `
+    <div class="card">
+      <div class="persona-badge">${persona.badge}</div>
+      <div class="headline">${persona.headline}</div>
+      <div class="desc">${persona.desc}</div>
+
+      <div class="section-title">Your pace <span class="tier-pill">${tier.label}</span></div>
+      <div class="section-sub">${PACE_NOTE}</div>
+
+      <div class="section-title">Community</div>
+      <div class="section-sub">First offering, based on what's stopping you right now</div>
+      <div class="step"><div class="num">1</div><div><div class="step-a">${getCommunityStep()}</div></div></div>
+
+      <div class="section-title">30-day goal</div>
+      <div class="section-sub">Pulled from what you placed in the "30 days" column</div>
+      <div class="step"><div class="num">2</div><div><div class="step-a">${getGoalStep()}</div></div></div>
+
+      <div class="section-title">Network / ecosystem</div>
+      <div class="section-sub">Matched to your blocker <span class="todo-badge">TODO — copy draft</span></div>
+      <div class="step"><div class="num">3</div><div><div class="step-a">${getNetworkStep()}</div></div></div>
+      <div class="section-sub">Resources to help with this — coming as the ecosystem map is built:</div>
+      <div class="chiprow">
+        <span class="mchip" style="cursor:default;border-style:dashed;">[Resource 1 — TBD]</span>
+        <span class="mchip" style="cursor:default;border-style:dashed;">[Resource 2 — TBD]</span>
+      </div>
+
+      ${semesterItems.length ? `
+      <div class="section-title">This semester</div>
+      <div class="section-sub">Milestones you placed here</div>
+      <div class="chiprow">${semesterItems.map(t=>`<span class="mchip" style="cursor:default;">${t}</span>`).join('')}</div>
+      <div class="section-sub" style="margin-top:10px;">Resources to help with these — coming as the ecosystem map is built:</div>
+      <div class="chiprow">
+        <span class="mchip" style="cursor:default;border-style:dashed;">[Resource 1 — TBD]</span>
+        <span class="mchip" style="cursor:default;border-style:dashed;">[Resource 2 — TBD]</span>
+      </div>
+      ` : ''}
+
+      <div class="section-title">You are here → let's get you here</div>
+      <div class="levelup-intro">Based on your self-rating plus what you placed in the "30 days" column, here's what to expect if you follow the 3 steps above:</div>
+      ${STAGE_SLIDERS.map(s=>{
+        const proj = getDimensionProjection(s.key);
+        const curPct = (proj.current-1)/4*100;
+        const tgtPct = (proj.target-1)/4*100;
+        return `
+        <div class="levelup-block">
+          <div class="levelup-labels"><span class="now">${s.label} — you are here (${proj.current})</span><span class="then">in 30 days (${proj.target}) ${proj.points>0?`· +${proj.points} pts`:''}</span></div>
+          <div class="levelup-track">
+            <div class="levelup-fill" style="width:${tgtPct}%"></div>
+            <div class="levelup-marker marker-current" style="left:${curPct}%">${proj.current}</div>
+            <div class="levelup-marker marker-target" style="left:${tgtPct}%">${proj.target}</div>
+          </div>
+          ${proj.notes.length ? `<div class="todo-block">${proj.notes.join('<br>')}</div>` : ''}
+        </div>`;
+      }).join('')}
+      ${answers.milestones['30days'].length === 0 ? '<div class="todo-block">No milestones were placed in the "30 days" column, so no points were scored — projections show your current rating with no movement.</div>' : ''}
+
+      <div class="section-title">If you commit... <span class="todo-badge">TODO</span></div>
+      <div class="timing-row">
+        ${timing.map(t=>`<div class="timing-card"><div class="tt">${t.tt}</div><div class="td">${t.td}</div></div>`).join('')}
+      </div>
+
+      <div class="restart"><button onclick="restart()">Start over</button></div>
+    </div>
+  `;
+}
+
+/* Sample data for demo purposes only — a plausible "first step" founder,
+   not a real i-lab member. */
+function loadDemo(){
+  answers.entry = 'firststep';
+  answers.stage = { concept:2, testing:3, traction:1 };
+  answers.milestones = {
+    pool: MILESTONE_BANK.filter(m=>!['Test assumptions/concept','Interview 100 customers','Build an MVP','Find a cofounder','Apply for the PIC'].includes(m)),
+    '30days': ['Test assumptions/concept','Interview 100 customers'],
+    semester: ['Build an MVP','Find a cofounder'],
+    harvard: ['Apply for the PIC']
+  };
+  answers.blockers = { time:4, ppl:3, knowledge:4, money:2 };
+  step = QUESTIONS.length;
+  renderQuiz();
+}
+
+function restart(){
+  step = 0;
+  answers.entry = undefined;
+  answers.stage = { concept:3, testing:3, traction:3 };
+  answers.milestones = { pool: [...MILESTONE_BANK], '30days':[], semester:[], harvard:[] };
+  answers.blockers = { time:3, ppl:3, knowledge:3, money:3 };
+  renderQuiz();
+}
+
+renderQuiz();
+</script>
+</body>
+</html>

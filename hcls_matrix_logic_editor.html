@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCLS Wayfinder — Scoring Logic Editor</title>
+<style>
+:root{
+  --bg:#F7F6F3; --surface:#FFFFFF; --border:#E2E0D8; --border-strong:#CBC8BC;
+  --ink:#1F2320; --muted:#6B6F68; --faint:#9A978C;
+  --accent:#3D6B5C; --accent-soft:#E4EDE8; --accent-ink:#20402F;
+  --clay:#B8863B; --clay-soft:#F3E9D6; --clay-ink:#5C4114;
+  --nrn:#8A8577; --nrn-soft:#EDEBE3;
+  --radius:12px;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);}
+h1,h2,h3{margin:0;font-weight:600;}
+button{cursor:pointer;font-family:inherit;}
+.wrap{max-width:840px;margin:0 auto;padding:36px 20px 60px;}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:700;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:20px;}
+.card h2{font-size:16px;margin-bottom:8px;}
+.card p{font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 6px;}
+.formula{background:var(--accent-soft);color:var(--accent-ink);border-radius:8px;padding:10px 14px;font-size:13.5px;
+  font-weight:600;margin:10px 0;}
+.note-inline{font-size:12px;color:var(--faint);font-style:italic;margin-top:6px;}
+
+.tabs{display:flex;gap:6px;margin-bottom:14px;}
+.tab{border:1px solid var(--border-strong);background:var(--surface);border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;color:var(--muted);}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th,td{border:1px solid var(--border);padding:0;text-align:center;}
+th{background:var(--accent-soft);color:var(--accent-ink);font-weight:700;padding:8px 6px;font-size:11.5px;}
+td.milestone-label{background:var(--bg);text-align:left;padding:8px 10px;font-weight:600;color:var(--ink);white-space:nowrap;}
+select.cell-edit{width:100%;height:36px;border:none;background:transparent;font-size:12.5px;font-weight:700;text-align:center;
+  color:var(--accent-ink);cursor:pointer;}
+select.cell-edit.nrn{color:var(--nrn);background:var(--nrn-soft);font-weight:600;font-size:10.5px;}
+select.cell-edit.zero{color:var(--faint);}
+select.cell-edit:focus{outline:2px solid var(--accent);outline-offset:-2px;}
+
+.save-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+.save-status{font-size:12px;color:var(--muted);}
+.btn{border:none;border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:600;}
+.btn-ghost{background:none;border:1px solid var(--border-strong);color:var(--muted);}
+
+.sim-row{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;}
+.sim-col{flex:1;min-width:220px;}
+.sim-label{font-size:12.5px;font-weight:600;margin-bottom:6px;}
+.sim-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.sim-chip{border:1.5px solid var(--border-strong);border-radius:20px;padding:6px 12px;font-size:12px;background:var(--surface);}
+.sim-chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:600;}
+input[type=range]{width:100%;accent-color:var(--accent);}
+
+.result-block{background:var(--clay-soft);border:1px solid var(--clay);border-radius:10px;padding:14px 16px;margin-top:10px;}
+.result-line{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:var(--clay-ink);margin-bottom:4px;}
+.result-detail{font-size:12px;color:var(--clay-ink);opacity:.85;}
+.levelup-track{position:relative;height:10px;background:var(--border);border-radius:6px;margin:10px 4px 4px;}
+.levelup-fill{position:absolute;top:0;left:0;height:100%;background:var(--accent-soft);border-radius:6px;}
+.levelup-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.marker-current{background:var(--accent);color:#fff;border:2px solid var(--surface);}
+.marker-target{background:var(--surface);color:var(--clay-ink);border:2px dashed var(--clay);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Harvard Innovation Labs · HCLS Wayfinder — companion page</div>
+  <h1 style="font-size:22px;margin-top:6px;">Scoring logic: how it works, and how to change it</h1>
+
+  <div class="card">
+    <h2>The rule</h2>
+    <p>Each founder self-rates Concept, Testing, and Traction from 1–5. Whatever milestones they drag into the "30 days" column earn points toward each dimension, based on the table below. Points add directly onto the self-rating.</p>
+    <div class="formula">target = self-rating + (sum of points from 30-day milestones), capped at 5</div>
+    <p style="margin-bottom:0;">"Not right now" means that milestone earns 0 points for that dimension, no matter the self-rating — it's simply the wrong lever for that part of the founder's readiness.</p>
+    <div class="note-inline">Only the "30 days" column scores anything right now. Semester and time-at-Harvard milestones are shown to the founder but don't affect the projection — that was an explicit decision, not an oversight.</div>
+  </div>
+
+  <div class="card">
+    <h2>Try it</h2>
+    <p>Pick a dimension, a self-rating, and a few milestones to see the projection calculate live — using whatever values are in the table below, including any edits you've made.</p>
+    <div class="sim-row">
+      <div class="sim-col">
+        <div class="sim-label">Dimension</div>
+        <div class="sim-chips" id="sim-dim"></div>
+      </div>
+      <div class="sim-col">
+        <div class="sim-label">Self-rating: <span id="sim-rating-val">3</span></div>
+        <input type="range" id="sim-rating" min="1" max="5" value="3">
+      </div>
+    </div>
+    <div class="sim-label">30-day milestones picked</div>
+    <div class="sim-chips" id="sim-milestones"></div>
+    <div class="result-block">
+      <div class="result-line"><span id="result-summary">—</span></div>
+      <div class="result-detail" id="result-detail"></div>
+      <div class="levelup-track"><div class="levelup-fill" id="sim-fill"></div>
+        <div class="levelup-marker marker-current" id="sim-cur">3</div>
+        <div class="levelup-marker marker-target" id="sim-tgt">3</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Edit the matrix</h2>
+    <p>Click any cell to change its value. This is a working prototype of a real admin backend — edits save immediately and are shared across your team, the same way the real thing would work.</p>
+    <div class="note-inline" style="margin-bottom:14px;">Note: we're using click-to-edit dropdowns rather than literal drag-and-drop here — there's nothing to drag when you're changing a number, so a dropdown is the more honest interaction. Drag-and-drop is still the right pattern elsewhere (like the founder's own milestone-timing choices in the main tool).</div>
+    <div class="tabs" id="tabs"></div>
+    <div id="matrix-table"></div>
+    <div class="save-row">
+      <div class="save-status" id="save-status">Loaded.</div>
+      <button class="btn btn-ghost" onclick="resetDimension()">Reset this tab to advisor defaults</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MILESTONES = [
+  'Generate a concept','Test assumptions/concept','Build an MVP','Find a cofounder','Get funding',
+  'Interview 100 customers','Define core customer','Apply for the PIC','Build a team','Transition to lab/office space'
+];
+const DIMENSIONS = ['concept','testing','traction'];
+const DIM_LABELS = { concept:'Concept', testing:'Testing', traction:'Traction' };
+
+const DEFAULT_MATRIX = {
+  concept: {
+    'Generate a concept': [4,3,2,1,0],
+    'Test assumptions/concept': [3,2,1,1,0],
+    'Build an MVP': ['nrn','nrn','nrn','nrn','nrn'],
+    'Find a cofounder': [0,0,0,0,0],
+    'Get funding': null,
+    'Interview 100 customers': [3,2,1,1,0],
+    'Define core customer': ['nrn','nrn','nrn',1,0],
+    'Apply for the PIC': ['nrn','nrn','nrn','nrn',0],
+    'Build a team': [0,0,0,0,0],
+    'Transition to lab/office space': ['nrn','nrn','nrn','nrn','nrn']
+  },
+  testing: {
+    'Generate a concept': [0,0,0,0,0],
+    'Test assumptions/concept': [4,3,2,1,0],
+    'Build an MVP': ['nrn','nrn','nrn','nrn','nrn'],
+    'Find a cofounder': [0,0,0,0,0],
+    'Get funding': null,
+    'Interview 100 customers': [4,3,2,1,0],
+    'Define core customer': [4,3,2,1,0],
+    'Apply for the PIC': ['nrn','nrn','nrn','nrn','nrn'],
+    'Build a team': [0,0,0,0,0],
+    'Transition to lab/office space': ['nrn','nrn','nrn','nrn','nrn']
+  },
+  traction: {
+    'Generate a concept': [0,0,0,0,0],
+    'Test assumptions/concept': [0,0,0,0,0],
+    'Build an MVP': [4,3,2,1,0],
+    'Find a cofounder': [2,2,2,1,0],
+    'Get funding': null,
+    'Interview 100 customers': [0,0,0,0,0],
+    'Define core customer': [1,1,1,1,0],
+    'Apply for the PIC': [2,2,2,1,0],
+    'Build a team': [2,2,2,1,0],
+    'Transition to lab/office space': [2,2,2,1,0]
+  }
+};
+
+let matrix = JSON.parse(JSON.stringify(DEFAULT_MATRIX));
+let activeTab = 'concept';
+let simDim = 'concept';
+let simRating = 3;
+let simPicked = new Set();
+
+/* ---------- Storage ---------- */
+async function loadMatrix(){
+  try{
+    const res = await window.storage.get('matrix:hcls', true);
+    if(res && res.value){ matrix = JSON.parse(res.value); document.getElementById('save-status').textContent = 'Loaded saved edits.'; }
+  }catch(e){ document.getElementById('save-status').textContent = 'Using advisor defaults (no saved edits yet).'; }
+  renderTabs(); renderMatrixTable(); renderSim();
+}
+async function saveMatrix(){
+  const status = document.getElementById('save-status');
+  status.textContent = 'Saving…';
+  try{
+    const res = await window.storage.set('matrix:hcls', JSON.stringify(matrix), true);
+    status.textContent = res ? 'Saved — visible to your whole team.' : 'Save failed, try again.';
+  }catch(e){ status.textContent = 'Save failed: ' + e.message; }
+}
+async function resetDimension(){
+  matrix[activeTab] = JSON.parse(JSON.stringify(DEFAULT_MATRIX[activeTab]));
+  await saveMatrix();
+  renderMatrixTable(); renderSim();
+}
+
+/* ---------- Matrix editor UI ---------- */
+function renderTabs(){
+  const t = document.getElementById('tabs');
+  t.innerHTML = '';
+  DIMENSIONS.forEach(d=>{
+    const b = document.createElement('button');
+    b.className = 'tab' + (d===activeTab ? ' active' : '');
+    b.textContent = DIM_LABELS[d];
+    b.onclick = () => { activeTab = d; renderTabs(); renderMatrixTable(); };
+    t.appendChild(b);
+  });
+}
+
+function cellOptions(current){
+  const opts = ['nrn',0,1,2,3,4];
+  return opts.map(o=>{
+    const label = o==='nrn' ? 'Not right now' : String(o);
+    const selected = (current===o || (current===null && o==='nrn')) ? 'selected' : '';
+    return `<option value="${o}" ${selected}>${label}</option>`;
+  }).join('');
+}
+
+function renderMatrixTable(){
+  const el = document.getElementById('matrix-table');
+  const dim = matrix[activeTab];
+  let html = '<table><tr><th style="text-align:left;">Milestone</th>' +
+    [1,2,3,4,5].map(r=>`<th>Rating ${r}</th>`).join('') + '</tr>';
+  MILESTONES.forEach(m=>{
+    const row = dim[m];
+    html += `<tr><td class="milestone-label">${m}</td>`;
+    for(let i=0;i<5;i++){
+      if(row === null){
+        html += `<td style="background:var(--nrn-soft);color:var(--nrn);font-size:11px;">no row (gap)</td>`;
+      } else {
+        const val = row[i];
+        const cls = val==='nrn' ? 'nrn' : (val===0 ? 'zero' : '');
+        html += `<td><select class="cell-edit ${cls}" onchange="editCell('${m.replace(/'/g,"\\'")}',${i},this.value)">${cellOptions(val)}</select></td>`;
+      }
+    }
+    html += '</tr>';
+  });
+  html += '</table>';
+  el.innerHTML = html;
+}
+
+function editCell(milestone, ratingIdx, rawVal){
+  const val = rawVal === 'nrn' ? 'nrn' : parseInt(rawVal);
+  if(matrix[activeTab][milestone] === null) matrix[activeTab][milestone] = ['nrn','nrn','nrn','nrn','nrn'];
+  matrix[activeTab][milestone][ratingIdx] = val;
+  saveMatrix();
+  renderMatrixTable();
+  renderSim();
+}
+
+/* ---------- Simulator ---------- */
+function renderSim(){
+  const dimEl = document.getElementById('sim-dim');
+  dimEl.innerHTML = '';
+  DIMENSIONS.forEach(d=>{
+    const chip = document.createElement('button');
+    chip.className = 'sim-chip' + (d===simDim ? ' on' : '');
+    chip.textContent = DIM_LABELS[d];
+    chip.onclick = () => { simDim = d; renderSim(); };
+    dimEl.appendChild(chip);
+  });
+
+  const mEl = document.getElementById('sim-milestones');
+  mEl.innerHTML = '';
+  MILESTONES.forEach(m=>{
+    const chip = document.createElement('button');
+    chip.className = 'sim-chip' + (simPicked.has(m) ? ' on' : '');
+    chip.textContent = m;
+    chip.onclick = () => { simPicked.has(m) ? simPicked.delete(m) : simPicked.add(m); renderSim(); };
+    mEl.appendChild(chip);
+  });
+
+  document.getElementById('sim-rating-val').textContent = simRating;
+  const ratingInput = document.getElementById('sim-rating');
+  ratingInput.oninput = () => { simRating = parseInt(ratingInput.value); renderSim(); };
+
+  let points = 0;
+  const notes = [];
+  simPicked.forEach(m=>{
+    const row = matrix[simDim][m];
+    if(row === null){ notes.push(`"${m}" has no row for ${DIM_LABELS[simDim]} — not scored`); return; }
+    const cell = row[simRating-1];
+    if(cell === 'nrn'){ notes.push(`"${m}" is not-right-now for ${DIM_LABELS[simDim]} at rating ${simRating} — 0 pts`); return; }
+    points += cell;
+  });
+  const target = Math.min(5, simRating + points);
+  document.getElementById('result-summary').textContent = `${DIM_LABELS[simDim]}: rating ${simRating} + ${points} pts → target ${target}`;
+  document.getElementById('result-detail').innerHTML = notes.length ? notes.join('<br>') : (simPicked.size ? 'All picked milestones scored normally.' : 'Pick a few milestones above to see this update.');
+
+  document.getElementById('sim-cur').style.left = ((simRating-1)/4*100) + '%';
+  document.getElementById('sim-cur').textContent = simRating;
+  document.getElementById('sim-tgt').style.left = ((target-1)/4*100) + '%';
+  document.getElementById('sim-tgt').textContent = target;
+  document.getElementById('sim-fill').style.width = ((target-1)/4*100) + '%';
+}
+
+loadMatrix();
+</script>
+</body>
+</html>
